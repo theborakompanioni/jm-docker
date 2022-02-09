@@ -1,4 +1,3 @@
-
 name: Check and update versions of dependencies
 
 on:
