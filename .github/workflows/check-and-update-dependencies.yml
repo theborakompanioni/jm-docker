@@ -17,13 +17,24 @@ jobs:
         uses: falti/dotenv-action@v0.2.7
         with:
           log-variables: true
+    
+      - name: Prepare repo infos
+        id: repoinfo
+        env:
+          UI_REPO: ${{ steps.dotenv.outputs.jm_ui_repo }}
+          SERVER_REPO: ${{ steps.dotenv.outputs.jm_server_repo }}
+        run: |
+          echo ::set-output name=ui_repo_name::$(echo ${UI_REPO#*://*/})
+          echo ::set-output name=ui_repo_name_short::$(echo ${UI_REPO##*://*/})
+          echo ::set-output name=server_repo_name::$(echo ${SERVER_REPO#*://*/})
+          echo ::set-output name=server_repo_name_short::$(echo ${SERVER_REPO#*://*/})
 
-      - name: Get Latest JoinMarket UI Release
+      - name: Get Latest Releases
         id: versions
         run: |
-          echo ::set-output name=ui_release_tag::$(curl -sL https://api.github.com/repos/joinmarket-webui/joinmarket-webui/releases/latest | jq -r ".tag_name")
+          echo ::set-output name=ui_release_tag::$(curl -sL "https://api.github.com/repos/${{ steps.repoinfo.outputs.ui_repo_name }}/releases/latest" | jq -r ".tag_name")
           echo ::set-output name=ui_current_tag::${{ steps.dotenv.outputs.jm_ui_repo_ref }}
-          echo ::set-output name=server_release_tag::$(curl -sL https://api.github.com/repos/JoinMarket-Org/joinmarket-clientserver/releases/latest | jq -r ".tag_name")
+          echo ::set-output name=server_release_tag::$(curl -sL https://api.github.com/repos/${{ steps.repoinfo.outputs.server_repo_name }}/releases/latest | jq -r ".tag_name")
           echo ::set-output name=server_current_tag::${{ steps.dotenv.outputs.jm_server_repo_ref }}
 
       # UI -----------------
@@ -38,8 +49,8 @@ jobs:
         if: steps.versions.outputs.ui_current_tag != steps.versions.outputs.ui_release_tag
         env:
           RELEASE_TAG: ${{ steps.versions.outputs.ui_release_tag }}
-          NAME: joinmarket-webui
-          LINK: https://github.com/joinmarket-webui/joinmarket-webui
+          NAME: ${{ steps.repoinfo.outputs.ui_repo_name_short }}
+          LINK: ${{ steps.dotenv.outputs.jm_ui_repo }}
         uses: peter-evans/create-pull-request@v3
         with:
           add-paths: .env
@@ -68,8 +79,8 @@ jobs:
         if: steps.versions.outputs.server_current_tag != steps.versions.outputs.server_release_tag
         env:
           RELEASE_TAG: ${{ steps.versions.outputs.server_release_tag }}
-          NAME: joinmarket-clientserver
-          LINK: https://github.com/JoinMarket-Org/joinmarket-clientserver
+          NAME: ${{ steps.repoinfo.outputs.server_repo_name_short }}
+          LINK: ${{ steps.dotenv.outputs.jm_server_repo }}
         uses: peter-evans/create-pull-request@v3
         with:
           add-paths: .env
