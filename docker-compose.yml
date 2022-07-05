@@ -10,14 +10,15 @@ services:
       args: 
         JM_UI_REPO: ${JM_UI_REPO?err}
         JM_UI_REPO_BRANCH: ${JM_UI_REPO_BRANCH?err}
-        JM_UI_REPO_REF: ${JM_UI_REGRESSION_TEST_REPO_REF:-v0.0.2}
+        JM_UI_REPO_REF: ${JM_UI_REPO_REF?err}
     restart: on-failure
     stop_grace_period: 1m
     environment:
-      JMWEBUI_JM_WALLETD_HOST: joinmarket-webui-standalone2
-      JMWEBUI_JM_WALLETD_PORT: 28183
+      JMWEBUI_JMWALLETD_HOST: joinmarket-webui-standalone2
+      JMWEBUI_JMWALLETD_API_PORT: 28183
+      JMWEBUI_JMWALLETD_WEBSOCKET_PORT: 28283
     ports:
-      - "8081:80"
+      - "8082:80"
 
   joinmarket-webui-standalone:
     build:
@@ -34,12 +35,9 @@ services:
     environment:
       ENSURE_WALLET: 1
       READY_FILE: /root/.nbxplorer/btc_fully_synched
-      jm_gaplimit: 2000
-      jm_max_cj_fee_abs: 42000000 # 0.42 btc
-      jm_max_cj_fee_rel: 0.1337 # 13.37%
+      APP_USER: joinmarket
+      APP_PASSWORD: joinmarket
       jm_minimum_makers: 1
-      jm_taker_utxo_age: 1
-      jm_taker_utxo_retries: 10
       jm_tx_broadcast: self
       jm_network: regtest
       jm_rpc_host: bitcoind
@@ -79,12 +77,9 @@ services:
     environment:
       ENSURE_WALLET: 1
       READY_FILE: /root/.nbxplorer/btc_fully_synched
-      jm_gaplimit: 2000
-      jm_max_cj_fee_abs: 42000000 # 0.42 btc
-      jm_max_cj_fee_rel: 0.1337 # 13.37%
+      APP_USER: joinmarket
+      APP_PASSWORD: joinmarket
       jm_minimum_makers: 1
-      jm_taker_utxo_age: 1
-      jm_taker_utxo_retries: 10
       jm_tx_broadcast: self
       jm_network: regtest
       jm_rpc_host: bitcoind
@@ -100,6 +95,8 @@ services:
       jm_socks5_port: 9050
     expose:
       - 28183 # jmwalletd
+    ports:
+      - "8081:80"
     volumes:
       - "joinmarket2_datadir:/root/.joinmarket"
       - "nbxplorer_datadir:/root/.nbxplorer"
