@@ -75,7 +75,8 @@ WORKDIR /src/scripts
 
 COPY .bashrc /root/.bashrc
 COPY autostart ${DEFAULT_AUTO_START}
-COPY default.cfg ${DEFAULT_CONFIG}
+COPY default.cfg /root/default.cfg
+COPY default-regtest.cfg /root/default-regtest.cfg
 COPY supervisor-conf/*.conf /etc/supervisor/conf.d/
 
 COPY ./nginx/snippets/proxy-params.conf /etc/nginx/snippets/proxy-params.conf
