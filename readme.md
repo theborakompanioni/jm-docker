@@ -1,6 +1,24 @@
 # jm-docker
 
-## Test
+## JM
+### Test
+#### `up`
+```sh
+> docker-compose --file ./docker-compose-jm.yml up
+```
+
+#### `down`
+```sh
+> docker-compose --file ./docker-compose-jm.yml down --volumes --remove-orphans
+```
+
+#### `build`
+```sh
+> docker-compose --file ./docker-compose-jm.yml build --pull --no-cache
+```
+
+## Jam
+### Test
 The docker-compose setup will start 3 joinmarket-ui container. 
 Two "standalone" container connecting to the same bitcoin-core instance.
 One "ui-only" container connecting to the second standalone container.
@@ -20,7 +38,7 @@ Generate coins:
 > docker exec -t jm-docker_bitcoind_1 bitcoin-cli -datadir=/data -generate 100
 ```
 
-## TODO
+### TODO
 - Do not run as root inside container.
   - Clarify what it takes for all services to be started as non-root user.
   - See [joinmarket-clientserver#PR699](https://github.com/JoinMarket-Org/joinmarket-clientserver/pull/669) and

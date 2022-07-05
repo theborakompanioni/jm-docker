@@ -2,7 +2,6 @@ version: "3.7"
 
 services:
 
-  # the ui-only container will connect to the second instance
   joinmarket-webui-ui-only:
     build:
       context: ./ui-only
@@ -14,20 +13,17 @@ services:
     restart: on-failure
     stop_grace_period: 1m
     environment:
-      JMWEBUI_JMWALLETD_HOST: joinmarket-webui-standalone2
+      JMWEBUI_JMWALLETD_HOST: joinmarket-base
       JMWEBUI_JMWALLETD_API_PORT: 28183
       JMWEBUI_JMWALLETD_WEBSOCKET_PORT: 28283
     ports:
-      - "8082:80"
+      - "8080:80"
 
-  joinmarket-webui-standalone:
+  joinmarket-base:
     build:
-      context: ./standalone
+      context: ./joinmarket/base
       dockerfile: Dockerfile
-      args: 
-        JM_UI_REPO: ${JM_UI_REPO?err}
-        JM_UI_REPO_BRANCH: ${JM_UI_REPO_BRANCH?err}
-        JM_UI_REPO_REF: ${JM_UI_REPO_REF?err}
+      args:
         JM_SERVER_REPO: ${JM_SERVER_REPO?err}
         JM_SERVER_REPO_BRANCH: ${JM_SERVER_REPO_BRANCH?err}
         JM_SERVER_REPO_REF: ${JM_SERVER_REPO_REF?err}
@@ -52,54 +48,13 @@ services:
       jm_socks5_host: tor
       jm_socks5_port: 9050
     expose:
+      - 28183 # jmwalletd api
+      - 28283 # jmwalletd websocket
       - 62601 # obwatch
     ports:
-      - "8080:80"
       - "62601:62601"
     volumes:
       - "joinmarket_datadir:/root/.joinmarket"
-      - "nbxplorer_datadir:/root/.nbxplorer"
-      - "tor_datadir:/home/tor/.tor"
-    depends_on:
-      - bitcoind
-      - nbxplorer
-      - tor
-
-  joinmarket-webui-standalone2:
-    build:
-      context: ./standalone
-      dockerfile: Dockerfile
-      args: 
-        JM_SERVER_REPO: ${JM_SERVER_REPO?err}
-        JM_SERVER_REPO_BRANCH: ${JM_SERVER_REPO_BRANCH?err}
-        JM_SERVER_REPO_REF: ${JM_SERVER_REPO_REF?err}
-    restart: unless-stopped
-    environment:
-      ENSURE_WALLET: 1
-      READY_FILE: /root/.nbxplorer/btc_fully_synched
-      APP_USER: joinmarket
-      APP_PASSWORD: joinmarket
-      jm_minimum_makers: 1
-      jm_tx_broadcast: self
-      jm_network: regtest
-      jm_rpc_host: bitcoind
-      jm_rpc_port: 43782
-      jm_rpc_user: joinmarket2
-      jm_rpc_password: joinmarket2
-      jm_rpc_wallet_file: jm_webui_2
-      jm_tor_control_host: tor
-      jm_tor_control_port: 9051
-      jm_onion_socks5_host: tor
-      jm_onion_socks5_port: 9050
-      jm_socks5_host: tor
-      jm_socks5_port: 9050
-    expose:
-      - 28183 # jmwalletd api
-      - 28283 # jmwalletd websocket
-    ports:
-      - "8081:80"
-    volumes:
-      - "joinmarket2_datadir:/root/.joinmarket"
       - "nbxplorer_datadir:/root/.nbxplorer"
       - "tor_datadir:/home/tor/.tor"
     depends_on:
