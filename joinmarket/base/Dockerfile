@@ -60,6 +60,7 @@ WORKDIR /src
 
 COPY --from=server-builder /usr/src/joinmarket-clientserver .
 
+ENV NGINXDIR /root/.joinmarket/nginx
 ENV DATADIR /root/.joinmarket
 ENV CONFIG ${DATADIR}/joinmarket.cfg
 ENV DEFAULT_CONFIG /root/default.cfg

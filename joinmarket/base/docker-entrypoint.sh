@@ -4,6 +4,9 @@ set -e
 export JM_ONION_SERVING_HOST
 JM_ONION_SERVING_HOST="$(/sbin/ip route|awk '/src/ { print $9 }')"
 
+# ensure 'nginx' directory exists
+mkdir -p "${NGINXDIR}/"
+
 # ensure 'logs' directory exists
 mkdir -p "${DATADIR}/logs"
 

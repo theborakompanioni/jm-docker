@@ -1,6 +1,6 @@
 
 # global arguments
-ARG MAINTAINER='joinmarket-webui https://github.com/joinmarket-webui'
+ARG MAINTAINER='tbk'
 
 ARG JM_UI_REPO=https://github.com/joinmarket-webui/joinmarket-webui
 ARG JM_UI_REPO_BRANCH=master
