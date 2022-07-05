@@ -3,7 +3,7 @@ set -e
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
-declare -a contexts=(ui-only standalone joinmarket/base)
+declare -a contexts=(ui-only standalone joinmarket/base joinmarket/base-with-ttyd)
 
 ORG="theborakompanioni"
 IMAGE_NAME_PREFIX="jmui-local"
