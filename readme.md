@@ -1,5 +1,10 @@
 # jm-docker
 
+
+```sh
+> ./build_docker.sh
+```
+
 ## JM
 ### Test
 #### `up`
@@ -53,3 +58,4 @@ Generate coins:
 - Citadel (GitHub): https://github.com/runcitadel/citadel
 ---
 - OCI Image Annotations: https://github.com/opencontainers/image-spec/blob/main/annotations.md
+- ttyd (GitHub): https://github.com/tsl0922/ttyd

@@ -19,6 +19,23 @@ services:
     ports:
       - "8080:80"
 
+  joinmarket-webui-ui-only2:
+    build:
+      context: ./ui-only
+      dockerfile: Dockerfile
+      args: 
+        JM_UI_REPO: ${JM_UI_REPO?err}
+        JM_UI_REPO_BRANCH: ${JM_UI_REPO_BRANCH?err}
+        JM_UI_REPO_REF: ${JM_UI_REPO_REF?err}
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      JMWEBUI_JMWALLETD_HOST: joinmarket-base-with-ttyd
+      JMWEBUI_JMWALLETD_API_PORT: 28183
+      JMWEBUI_JMWALLETD_WEBSOCKET_PORT: 28283
+    ports:
+      - "8081:80"
+
   joinmarket-base:
     build:
       context: ./joinmarket/base
@@ -59,6 +76,48 @@ services:
       - "62601:62601"
     volumes:
       - "joinmarket_datadir:/root/.joinmarket"
+      - "nbxplorer_datadir:/root/.nbxplorer"
+      - "tor_datadir:/home/tor/.tor"
+    depends_on:
+      - bitcoind
+      - nbxplorer
+      - tor
+      - irc
+
+  joinmarket-base-with-ttyd:
+    build:
+      context: ./joinmarket/base-with-ttyd
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DEFAULT_CONFIG: /root/default-regtest.cfg
+      RESTORE_DEFAULT_CONFIG: 1
+      ENSURE_WALLET: 1
+      READY_FILE: /root/.nbxplorer/btc_fully_synched
+      APP_USER: joinmarket
+      APP_PASSWORD: joinmarket
+      jm_minimum_makers: 1
+      jm_tx_broadcast: self
+      jm_network: regtest
+      jm_rpc_host: bitcoind
+      jm_rpc_port: 43782
+      jm_rpc_user: joinmarket
+      jm_rpc_password: joinmarket
+      jm_rpc_wallet_file: jm_webui_1
+      jm_tor_control_host: tor
+      jm_tor_control_port: 9051
+      jm_host: irc
+      jm_socks5: "false" # will _not_ connect to local irc over tor
+      jm_socks5_host: tor
+      jm_socks5_port: 9050
+      jm_onion_socks5_host: tor
+      jm_onion_socks5_port: 9050
+    expose:
+      - 7681 # ttyd
+    ports:
+      - "7681:7681"
+    volumes:
+      - "joinmarket2_datadir:/root/.joinmarket"
       - "nbxplorer_datadir:/root/.nbxplorer"
       - "tor_datadir:/home/tor/.tor"
     depends_on:
