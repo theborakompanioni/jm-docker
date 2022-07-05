@@ -109,53 +109,9 @@ services:
 # -----------------------
 
   bitcoind:
-    image: btcpayserver/bitcoin:22.0-1
-    restart: unless-stopped
-    environment:
-      HIDDENSERVICE_NAME: BTC-P2P,BTC-RPC
-      BTC-P2P_HIDDENSERVICE_VIRTUAL_PORT: 8333
-      BTC-P2P_HIDDENSERVICE_PORT: 39388
-      BTC-RPC_HIDDENSERVICE_VIRTUAL_PORT: 8332
-      BTC-RPC_HIDDENSERVICE_PORT: 43782
-      BITCOIN_NETWORK: ${NBITCOIN_NETWORK:-regtest}
-      BITCOIN_WALLETDIR: "/walletdata"
-      BITCOIN_EXTRA_ARGS: |
-        rpcport=43782
-        rpcbind=0.0.0.0
-        rpcallowip=0.0.0.0/0
-        port=39388
-        whitelist=0.0.0.0/0
-        maxmempool=500
-        debug=rpc
-        logips=0
-        networkactive=1
-        dnsseed=0
-        uacomment=jmdevbitcoindregtest
-        printpriority=1
-        logtimemicros=1
-        zmqpubrawblock=tcp://0.0.0.0:28332
-        zmqpubrawtx=tcp://0.0.0.0:28333
-        zmqpubhashblock=tcp://0.0.0.0:28334
-        # tor
-        dns=1
-        onion=tor:9050
-        torcontrol=tor:9051
-        # do not automatically create tor hidden service
-        listenonion=0
-        # rpcauth (user=regtest; password=regtest)
-        rpcauth=regtest:20b58677979ad9d3cf4b78b1d6e85e44$$2ec3e1e1c00c7c58d7aff1d4bf96e4a984ea1af5d676d862fd0faa857a1d4d7c
-        # rpcauth (user=joinmarket; password=joinmarket)
-        rpcauth=joinmarket:260b4c5b1fbd09d75a4aabf90226282f$$76e170af088d43a588992cdd5e7bae2242b03c33aa672cccfd1fb75f9281299e
-        # rpcauth (user=joinmarket2; password=joinmarket2)
-        rpcauth=joinmarket2:521bf9f4468529d49c0a41f9c9f8fdbf$$63ae94a73d2aa45e7ee756945d9b1e469f9873ce026b815d676a748f777e0b8d
-        # rpcauth (user=nbxplorer; password=nbxplorer)
-        rpcauth=nbxplorer:8953867752ed07ca27bc0b1d7a10fa99$$e46553870d4a2c59753bfe453797be070ab4dbd5fdfc2fecdb7862ea0ae6b127
-    expose:
-      - "43782" # RPC
-      - "39388" # P2P
-      - "28332" # ZMQ
-      - "28333" # ZMQ
-      - "28334" # ZMQ
+    extends:
+      file: docker-compose-jm-regtest-common.yml
+      service: bitcoind
     volumes:
       - "bitcoin_datadir:/data"
       - "bitcoin_wallet_datadir:/walletdata"
@@ -164,21 +120,9 @@ services:
       - tor
 
   nbxplorer:
-    image: nicolasdorier/nbxplorer:2.2.18
-    restart: unless-stopped
-    environment:
-      NBXPLORER_NOAUTH: 1
-      NBXPLORER_CHAINS: "btc"
-      NBXPLORER_BTCRPCURL: http://bitcoind:43782/
-      NBXPLORER_BTCRPCUSER: nbxplorer
-      NBXPLORER_BTCRPCPASSWORD: nbxplorer
-      NBXPLORER_BTCNODEENDPOINT: bitcoind:39388
-      NBXPLORER_NETWORK: ${NBITCOIN_NETWORK:-regtest}
-      NBXPLORER_BIND: 0.0.0.0:32838
-      NBXPLORER_TRIMEVENTS: 10000
-      NBXPLORER_SIGNALFILESDIR: /datadir
-    expose:
-      - "32838"
+    extends:
+      file: docker-compose-jm-regtest-common.yml
+      service: nbxplorer
     volumes:
       - "nbxplorer_datadir:/datadir"
       - "bitcoin_datadir:/root/.bitcoin"
@@ -187,16 +131,9 @@ services:
       - tor
 
   tor:
-    image: btcpayserver/tor:0.4.6.5
-    restart: unless-stopped
-    environment:
-      TOR_PASSWORD: changeme
-      TOR_ADDITIONAL_CONFIG: /usr/local/etc/tor/torrc-2
-      TOR_EXTRA_ARGS: |
-        CookieAuthentication 1
-    expose:
-      - "9050"  # SOCKS
-      - "9051"  # Tor Control
+    extends:
+      file: docker-compose-jm-regtest-common.yml
+      service: tor
     volumes:
       - "tor_datadir:/home/tor/.tor"
       - "tor_torrcdir:/usr/local/etc/tor"
