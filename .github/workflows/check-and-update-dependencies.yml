@@ -5,7 +5,6 @@ on:
     - cron: '51 6 * * *' # every day at 06:51 UTC
   workflow_dispatch:
 
-
 jobs:
   readenv:
     runs-on: ubuntu-latest
@@ -27,7 +26,7 @@ jobs:
           log-variables: true
 
   check-ui:
-    uses: ./.github/workflows/check-and-update-dependencies.reuse.yml
+    uses: ./.github/workflows/update-dependency-version.yml
     needs: readenv
     with:
       repo_url: ${{ needs.readenv.outputs.ui_repo_url }}
@@ -35,7 +34,7 @@ jobs:
       env_var_name: 'JM_UI_REPO_REF'
 
   check-server:
-    uses: ./.github/workflows/check-and-update-dependencies.reuse.yml
+    uses: ./.github/workflows/update-dependency-version.yml
     needs: readenv
     with:
       repo_url: ${{ needs.readenv.outputs.server_repo_url }}

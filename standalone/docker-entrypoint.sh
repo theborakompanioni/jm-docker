@@ -1,23 +1,28 @@
 #!/bin/bash
 set -e
 
-cd ..
-. jmvenv/bin/activate
-cd scripts
+export JM_ONION_SERVING_HOST
+JM_ONION_SERVING_HOST="$(/sbin/ip route|awk '/src/ { print $9 }')"
 
-export JM_onion_serving_host="$(/sbin/ip route|awk '/src/ { print $9 }')"
+# ensure 'logs' directory exists
+mkdir -p "${DATADIR}/logs"
 
-# First we restore the default cfg as created by wallet-tool.py generate
-if ! [ -f "$CONFIG" ]; then
-    cp "$DEFAULT_CONFIG" "$CONFIG"
+# restore the default config
+if [ ! -f "$CONFIG" ] || [ "${RESTORE_DEFAULT_CONFIG}" = true ]; then
+    cp -f "$DEFAULT_CONFIG" "$CONFIG"
 fi
 
-if ! [ -f "$AUTO_START" ]; then
+if [ ! -f "$AUTO_START" ]; then
     cp "$DEFAULT_AUTO_START" "$AUTO_START"
 fi
 
+# setup basic authentication
+BASIC_AUTH_USER=${APP_USER:?APP_USER empty or unset}
+BASIC_AUTH_PASS=${APP_PASSWORD:?APP_PASSWORD empty or unset}
+echo -e "${BASIC_AUTH_USER}:$(openssl passwd -quiet -6 <<< echo "${BASIC_AUTH_PASS}")\n" > /etc/nginx/.htpasswd
+
 # generate ssl certificates for jmwalletd
-if ! [ -f "${DATADIR}/ssl/key.pem" ]; then
+if [ ! -f "${DATADIR}/ssl/key.pem" ]; then
     subj="/C=US/ST=Utah/L=Lehi/O=Your Company, Inc./OU=IT/CN=example.com"
     mkdir -p "${DATADIR}/ssl/" \
       && pushd "$_" \
@@ -25,28 +30,25 @@ if ! [ -f "${DATADIR}/ssl/key.pem" ]; then
       && popd
 fi
 
-# ensure 'logs' directory exists
-mkdir -p "${DATADIR}/logs"
-
 # auto start services
-while read p; do
+while read -r p; do
     [[ "$p" == "" ]] && continue
     [[ "$p" == "#"* ]] && continue
     echo "Auto start: $p"
     file_path="/etc/supervisor/conf.d/$p.conf"
     if [ -f "$file_path" ]; then
-      sed -i 's/autostart=false/autostart=true/g' $file_path
+      sed -i 's/autostart=false/autostart=true/g' "$file_path"
     else
       echo "$file_path not found"
     fi
-done <$AUTO_START
+done < "$AUTO_START"
 
 declare -A jmenv
 while IFS='=' read -r -d '' envkey parsedval; do
     n="${envkey,,}" # lowercase
     if [[ "$n" =  jm_* ]]; then
         n="${n:3}" # drop jm_
-        jmenv[$n]=${!envkey} # reread environment variable - characters might have been dropped (e.g 'ending in =')
+        jmenv[$n]="${!envkey}" # reread environment variable - characters might have been dropped (e.g 'ending in =')
     fi
 done < <(env -0)
 
@@ -64,18 +66,19 @@ if [ "${jmenv['network']}" == "regtest" ]; then
 fi
 
 # For every env variable JM_FOO=BAR, replace the default configuration value of 'foo' by 'BAR'
-for key in ${!jmenv[@]}; do
-    val=${jmenv[${key}]}
+for key in "${!jmenv[@]}"; do
+    val="${jmenv[${key}]}"
     sed -i "s/^$key =.*/$key = $val/g" "$CONFIG" || echo "Couldn't set : $key = $val, please modify $CONFIG manually"
-    sed -i "s/^#$key =.*/$key = $val/g" "$CONFIG" || echo "Couldn't set : $key = $val, please modify $CONFIG manually"
 done
 
+# wait for a ready file to be created if necessary
 if [ "${READY_FILE}" ] && [ "${READY_FILE}" != false ]; then
     echo "Waiting $READY_FILE to be created..."
     while [ ! -f "$READY_FILE" ]; do sleep 1; done
     echo "The chain is fully synched"
 fi
 
+# ensure that a wallet exists and is loaded if necessary
 if [ "${ENSURE_WALLET}" ] && [ "${ENSURE_WALLET}" != false ]; then
     btcuser="${jmenv['rpc_user']}:${jmenv['rpc_password']}"
     btchost="http://${jmenv['rpc_host']}:${jmenv['rpc_port']}"
