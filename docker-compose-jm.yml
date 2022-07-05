@@ -29,6 +29,8 @@ services:
         JM_SERVER_REPO_REF: ${JM_SERVER_REPO_REF?err}
     restart: unless-stopped
     environment:
+      DEFAULT_CONFIG: /root/default-regtest.cfg
+      RESTORE_DEFAULT_CONFIG: 1
       ENSURE_WALLET: 1
       READY_FILE: /root/.nbxplorer/btc_fully_synched
       APP_USER: joinmarket
@@ -43,10 +45,12 @@ services:
       jm_rpc_wallet_file: jm_webui_1
       jm_tor_control_host: tor
       jm_tor_control_port: 9051
-      jm_onion_socks5_host: tor
-      jm_onion_socks5_port: 9050
+      jm_host: irc
+      jm_socks5: "false" # will _not_ connect to local irc over tor
       jm_socks5_host: tor
       jm_socks5_port: 9050
+      jm_onion_socks5_host: tor
+      jm_onion_socks5_port: 9050
     expose:
       - 28183 # jmwalletd api
       - 28283 # jmwalletd websocket
@@ -61,6 +65,7 @@ services:
       - bitcoind
       - nbxplorer
       - tor
+      - irc
 
 # -----------------------
 
@@ -95,6 +100,12 @@ services:
       - "tor_torrcdir:/usr/local/etc/tor"
       - "tor_servicesdir:/var/lib/tor/hidden_services"
 
+  irc:
+    extends:
+      file: docker-compose-jm-regtest-common.yml
+      service: irc
+    volumes:
+      - "irc_datadir:/ircd"
 
 volumes:
   joinmarket_datadir:
@@ -102,6 +113,7 @@ volumes:
   bitcoin_datadir:
   bitcoin_wallet_datadir:
   nbxplorer_datadir:
+  irc_datadir:
   tor_datadir:
   tor_torrcdir:
   tor_servicesdir:

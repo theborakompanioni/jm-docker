@@ -79,3 +79,9 @@ services:
     expose:
       - "9050"  # SOCKS
       - "9051"  # Tor Control
+
+  irc:
+    restart: unless-stopped
+    image: ghcr.io/ergochat/ergo:stable
+    expose:
+      - 6667
