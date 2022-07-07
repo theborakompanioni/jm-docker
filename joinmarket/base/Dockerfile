@@ -52,13 +52,9 @@ RUN apt-get update \
     # ---
     && apt-get clean \
     && apt-get remove --purge --auto-remove -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -f /etc/apt/sources.list.d/nginx.list \
-    && rm -f /var/log/dpkg.log
-
-WORKDIR /src
-
-COPY --from=server-builder /usr/src/joinmarket-clientserver .
+    && rm --recursive --force /var/lib/apt/lists/* \
+    && rm --force /etc/apt/sources.list.d/nginx.list \
+    && rm --force /var/log/dpkg.log
 
 ENV NGINXDIR /root/.joinmarket/nginx
 ENV DATADIR /root/.joinmarket
@@ -67,11 +63,6 @@ ENV DEFAULT_CONFIG /root/default.cfg
 ENV DEFAULT_AUTO_START /root/autostart
 ENV AUTO_START ${DATADIR}/autostart
 ENV PATH /src/scripts:$PATH
-
-RUN ./install.sh --docker-install --without-qt
-RUN rm -rf install.sh deps/cache/ test/ .git/ .gitignore .github/ .coveragerc joinmarket-qt.desktop
-
-WORKDIR /src/scripts
 
 COPY .bashrc /root/.bashrc
 COPY autostart ${DEFAULT_AUTO_START}
@@ -84,6 +75,16 @@ COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 
 COPY docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
+
+WORKDIR /src
+
+COPY --from=server-builder /usr/src/joinmarket-clientserver .
+
+RUN ./install.sh --docker-install --without-qt
+RUN rm --recursive --force install.sh deps/cache/ test/ .git/ .gitignore .github/ .coveragerc joinmarket-qt.desktop
+
+# users should immediately start in the scripts dir
+WORKDIR /src/scripts
 
 # nginx
 EXPOSE 80
