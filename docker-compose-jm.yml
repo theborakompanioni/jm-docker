@@ -47,8 +47,9 @@ services:
     restart: unless-stopped
     environment:
       DEFAULT_CONFIG: /root/default-regtest.cfg
-      RESTORE_DEFAULT_CONFIG: 1
-      ENSURE_WALLET: 1
+      RESTORE_DEFAULT_CONFIG: "true"
+      REMOVE_LOCK_FILES: "true"
+      ENSURE_WALLET: "true"
       READY_FILE: /root/.nbxplorer/btc_fully_synched
       APP_USER: joinmarket
       APP_PASSWORD: joinmarket
@@ -91,8 +92,9 @@ services:
     restart: unless-stopped
     environment:
       DEFAULT_CONFIG: /root/default-regtest.cfg
-      RESTORE_DEFAULT_CONFIG: 1
-      ENSURE_WALLET: 1
+      RESTORE_DEFAULT_CONFIG: "true"
+      REMOVE_LOCK_FILES: "true"
+      ENSURE_WALLET: "true"
       READY_FILE: /root/.nbxplorer/btc_fully_synched
       APP_USER: joinmarket
       APP_PASSWORD: joinmarket
